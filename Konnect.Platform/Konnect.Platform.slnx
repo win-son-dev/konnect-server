@@ -1,0 +1,15 @@
+<Solution>
+  <Folder Name="/Konnect.Packages/">
+    <Project Path="Konnect.Packages/Konnect.Ai/Konnect.Ai.csproj" />
+    <Project Path="Konnect.Packages/Konnect.ResumeParsing/Konnect.ResumeParsing.csproj" />
+    <Project Path="Konnect.Packages/Konnect.Search/Konnect.Search.csproj" />
+    <Project Path="Konnect.Packages/Konnect.SkillsGraph/Konnect.SkillsGraph.csproj" />
+    <Project Path="Konnect.Packages/Konnect.Worker/Konnect.Worker.csproj" />
+  </Folder>
+  <Project Path="Konnect.Infrastructure/Konnect.Infrastructure.csproj" />
+  <Project Path="Konnect.Repositories/Konnect.Repositories.csproj" />
+  <Project Path="Konnect.Serverless/Konnect.Serverless.csproj" />
+  <Project Path="Konnect.Services/Konnect.Services.csproj" />
+  <Project Path="Konnect.Tests/Konnect.Tests.csproj" />
+  <Project Path="Konnect.WebAPI/Konnect.WebAPI.csproj" />
+</Solution>
