@@ -1,0 +1,182 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+env:
+  DOTNET_NOLOGO: "true"
+  DOTNET_CLI_TELEMETRY_OPTOUT: "true"
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: "true"
+  CONFIGURATION: Release
+  SOLUTION_PATH: Konnect.Platform/Konnect.Platform.slnx
+  REPOSITORIES_PROJECT: Konnect.Platform/Konnect.Repositories
+  WEBAPI_PROJECT: Konnect.Platform/Konnect.WebAPI
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: Konnect.Platform/global.json
+
+      - name: Cache NuGet packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/Directory.Packages.props', '**/*.csproj') }}
+          restore-keys: ${{ runner.os }}-nuget-
+
+      - name: Restore
+        run: dotnet restore ${{ env.SOLUTION_PATH }}
+
+      - name: Build
+        run: dotnet build ${{ env.SOLUTION_PATH }} --no-restore --configuration ${{ env.CONFIGURATION }}
+
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: Konnect.Platform/global.json
+
+      - name: Cache NuGet packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/Directory.Packages.props', '**/*.csproj') }}
+          restore-keys: ${{ runner.os }}-nuget-
+
+      - name: Restore
+        run: dotnet restore ${{ env.SOLUTION_PATH }}
+
+      - name: Build
+        run: dotnet build ${{ env.SOLUTION_PATH }} --no-restore --configuration ${{ env.CONFIGURATION }}
+
+      - name: Test (with TRX logger and code coverage)
+        run: >-
+          dotnet test ${{ env.SOLUTION_PATH }}
+          --no-build
+          --configuration ${{ env.CONFIGURATION }}
+          --logger "trx;LogFileName=test-results.trx"
+          --collect:"XPlat Code Coverage"
+          --results-directory ./TestResults
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: TestResults/**/*
+          if-no-files-found: ignore
+
+  ef-script:
+    name: EF migrations script
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: Konnect.Platform/global.json
+
+      - name: Cache NuGet packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/Directory.Packages.props', '**/*.csproj') }}
+          restore-keys: ${{ runner.os }}-nuget-
+
+      - name: Install dotnet-ef tool
+        run: dotnet tool install --global dotnet-ef --version 10.*
+
+      - name: Restore
+        run: dotnet restore ${{ env.SOLUTION_PATH }}
+
+      - name: Generate idempotent migrations script (skips when no migrations exist yet)
+        run: |
+          set -euo pipefail
+          if [ -d "${{ env.REPOSITORIES_PROJECT }}/Migrations" ]; then
+            dotnet ef migrations script --idempotent \
+              --project "${{ env.REPOSITORIES_PROJECT }}" \
+              --startup-project "${{ env.WEBAPI_PROJECT }}" \
+              --output ./migrations.sql
+            echo "Idempotent migrations script generated."
+          else
+            echo "No Migrations folder yet (Phase 0 has no DbContext) — skipping ef migrations script."
+          fi
+
+      - name: Upload migrations script
+        if: hashFiles('migrations.sql') != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: ef-migrations-script
+          path: migrations.sql
+
+  coverage-gate:
+    name: Test-coverage gate (production change must include tests)
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
+      - name: Checkout (full history for diff)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Verify production .cs changes have matching test changes
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+
+          changed=$(git diff --name-only "$BASE_SHA" "$HEAD_SHA")
+
+          prod_changes=$(printf "%s\n" "$changed" \
+            | grep -E '^Konnect\.Platform/Konnect\.(Infrastructure|Services|Repositories|WebAPI|Serverless|Worker|GraphQL)/.*\.cs$' \
+            || true)
+
+          test_changes=$(printf "%s\n" "$changed" \
+            | grep -E '^Konnect\.Platform/Konnect\.Tests/.*\.cs$' \
+            || true)
+
+          if [ -n "$prod_changes" ] && [ -z "$test_changes" ]; then
+            echo "::error::Production .cs files changed but no matching changes under Konnect.Platform/Konnect.Tests/."
+            echo "Production files changed in this PR:"
+            printf "  %s\n" $prod_changes
+            echo ""
+            echo "Per the standing 'every change ships with tests' rule, this PR must add or update tests."
+            exit 1
+          fi
+
+          if [ -z "$prod_changes" ]; then
+            echo "No production .cs changes in this PR — coverage gate not applicable."
+          else
+            echo "Production .cs changes detected and matching test changes are present."
+            echo ""
+            echo "Production files changed:"
+            printf "  %s\n" $prod_changes
+            echo ""
+            echo "Test files changed:"
+            printf "  %s\n" $test_changes
+          fi
