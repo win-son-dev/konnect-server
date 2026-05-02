@@ -1,13 +1,16 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+<Project Sdk="Microsoft.NET.Sdk.Worker">
+
+  <PropertyGroup>
+    <UserSecretsId>dotnet-Konnect.Worker-745801f7-6439-4fd8-a0fa-a79bbe6acef2</UserSecretsId>
+  </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.OpenApi" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Konnect.Infrastructure\Konnect.Infrastructure.csproj" />
     <ProjectReference Include="..\Konnect.Services\Konnect.Services.csproj" />
-    <ProjectReference Include="..\Konnect.Repositories\Konnect.Repositories.csproj" />
   </ItemGroup>
 
 </Project>

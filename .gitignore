@@ -480,3 +480,21 @@ $RECYCLE.BIN/
 
 # Vim temporary swap files
 *.swp
+
+# === Konnect: documentation kept local-only (README.md is the exception) ===
+# Per the docs-gitignored rule: docs/, ADRs, NOTICE, planning notes,
+# design docs all live in the developer's working tree and are NOT committed.
+# README.md (root + per-folder) is the only .md file that ships in the repo.
+docs/**
+notes/**
+scratch/**
+**/NOTICE.md
+**/CHANGELOG.md
+**/CONTRIBUTING.md
+**/CODE_OF_CONDUCT.md
+**/SECURITY.md
+**/*.plan.md
+**/*.notes.md
+**/*.adr.md
+!README.md
+!**/README.md
