@@ -1,0 +1,119 @@
+# Konnect local-dev infrastructure.
+#
+# Every published port binds to 127.0.0.1 only — these services are NOT
+# reachable from the LAN. Credentials below are dev-only; production uses
+# Azure Key Vault / GitHub Secrets via environment overrides.
+#
+# Usage:
+#   cd Konnect.Platform
+#   docker compose up -d                      # core services
+#   docker compose --profile ai-local up -d   # core + Ollama (heavy)
+
+name: konnect
+
+networks:
+  konnect:
+    driver: bridge
+
+volumes:
+  postgres-data:
+  rabbitmq-data:
+  fuseki-data:
+  ollama-data:
+
+services:
+
+  postgres:
+    image: pgvector/pgvector:pg17
+    container_name: konnect-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: konnect
+      POSTGRES_PASSWORD: konnect_dev_only
+      POSTGRES_DB: konnect
+      PGDATA: /var/lib/postgresql/data/pgdata
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U konnect -d konnect"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 5s
+    networks: [konnect]
+
+  rabbitmq:
+    image: rabbitmq:4-management
+    container_name: konnect-rabbitmq
+    restart: unless-stopped
+    environment:
+      RABBITMQ_DEFAULT_USER: konnect
+      RABBITMQ_DEFAULT_PASS: konnect_dev_only
+      RABBITMQ_DEFAULT_VHOST: konnect
+    ports:
+      - "127.0.0.1:5672:5672"     # AMQP
+      - "127.0.0.1:15672:15672"   # management UI
+    volumes:
+      - rabbitmq-data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 15s
+    networks: [konnect]
+
+  fuseki:
+    image: stain/jena-fuseki:5.0.0
+    container_name: konnect-fuseki
+    restart: unless-stopped
+    environment:
+      ADMIN_PASSWORD: konnect_dev_only
+      JVM_ARGS: -Xmx2g
+      FUSEKI_DATASET_1: esco
+    ports:
+      - "127.0.0.1:3030:3030"
+    volumes:
+      - fuseki-data:/fuseki
+      - ./infra/fuseki:/fuseki-init:ro
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:3030/$$/ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 15s
+    networks: [konnect]
+
+  smtp4dev:
+    image: rnwood/smtp4dev:v3
+    container_name: konnect-smtp4dev
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:2525:25"     # SMTP
+      - "127.0.0.1:5050:80"     # web UI
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:80/api/Server"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    networks: [konnect]
+
+  ollama:
+    image: ollama/ollama:latest
+    container_name: konnect-ollama
+    restart: unless-stopped
+    profiles: ["ai-local"]
+    ports:
+      - "127.0.0.1:11434:11434"
+    volumes:
+      - ollama-data:/root/.ollama
+    healthcheck:
+      test: ["CMD-SHELL", "ollama list >/dev/null 2>&1 || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    networks: [konnect]
