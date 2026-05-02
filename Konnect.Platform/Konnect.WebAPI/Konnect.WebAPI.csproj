@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.5" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Konnect.Infrastructure\Konnect.Infrastructure.csproj" />
+    <ProjectReference Include="..\Konnect.Services\Konnect.Services.csproj" />
+    <ProjectReference Include="..\Konnect.Repositories\Konnect.Repositories.csproj" />
+    <ProjectReference Include="..\Konnect.Packages\Konnect.Ai\Konnect.Ai.csproj" />
+    <ProjectReference Include="..\Konnect.Packages\Konnect.ResumeParsing\Konnect.ResumeParsing.csproj" />
+    <ProjectReference Include="..\Konnect.Packages\Konnect.SkillsGraph\Konnect.SkillsGraph.csproj" />
+    <ProjectReference Include="..\Konnect.Packages\Konnect.Search\Konnect.Search.csproj" />
+  </ItemGroup>
+
+</Project>

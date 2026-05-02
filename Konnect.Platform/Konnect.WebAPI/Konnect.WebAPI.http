@@ -1,0 +1,6 @@
+@Konnect.WebAPI_HostAddress = http://localhost:5220
+
+GET {{Konnect.WebAPI_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
