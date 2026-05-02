@@ -10,6 +10,11 @@
     <PackageVersion Include="Microsoft.Extensions.Hosting" Version="10.0.5" />
   </ItemGroup>
 
+  <ItemGroup Label="GraphQL (HotChocolate)">
+    <PackageVersion Include="HotChocolate.AspNetCore" Version="16.0.0" />
+    <PackageVersion Include="HotChocolate.Types" Version="16.0.0" />
+  </ItemGroup>
+
   <ItemGroup Label="Azure Functions (Serverless)">
     <PackageVersion Include="Azure.Monitor.OpenTelemetry.Exporter" Version="1.7.0" />
     <PackageVersion Include="Microsoft.Azure.Functions.Worker" Version="2.52.0" />

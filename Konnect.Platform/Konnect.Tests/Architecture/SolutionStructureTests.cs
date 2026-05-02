@@ -29,6 +29,18 @@ public class SolutionStructureTests
     }
 
     [Fact]
+    public void WebApi_References_GraphQL()
+    {
+        var webApiAssembly = Assembly.Load("Konnect.WebAPI");
+
+        var referencedAssemblyNames = webApiAssembly.GetReferencedAssemblies()
+            .Select(referencedAssembly => referencedAssembly.Name)
+            .ToArray();
+
+        Assert.Contains("Konnect.GraphQL", referencedAssemblyNames);
+    }
+
+    [Fact]
     public void Infrastructure_ContainsNoConcreteImplementationClasses()
     {
         var infrastructureAssembly = Assembly.Load("Konnect.Infrastructure");

@@ -8,6 +8,7 @@
     <ProjectReference Include="..\Konnect.Infrastructure\Konnect.Infrastructure.csproj" />
     <ProjectReference Include="..\Konnect.Services\Konnect.Services.csproj" />
     <ProjectReference Include="..\Konnect.Repositories\Konnect.Repositories.csproj" />
+    <ProjectReference Include="..\Konnect.GraphQL\Konnect.GraphQL.csproj" />
   </ItemGroup>
 
 </Project>
