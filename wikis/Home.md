@@ -13,6 +13,7 @@ This wiki is the deep-dive layer for collaborators. The repo `README.md` is the 
   - [PostgreSQL](infrastructure/PostgreSQL)
   - [RabbitMQ](infrastructure/RabbitMQ)
   - [Apache Jena Fuseki](infrastructure/Apache-Jena-Fuseki)
+  - [smtp4dev](infrastructure/smtp4dev)
   - [Docker Compose](infrastructure/Docker-Compose)
   - [CI Pipeline](infrastructure/CI-Pipeline)
 - **Features** — feature pages get added when each feature is implemented.
