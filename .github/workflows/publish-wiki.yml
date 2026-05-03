@@ -1,0 +1,35 @@
+name: Publish Wiki
+
+# Syncs the contents of the repo's wikis/ folder to the GitHub Wiki
+# (win-son-dev/konnect-server.wiki.git) on every push to main when wikis/**
+# changes. The wiki itself must be enabled in repo Settings → Features → Wikis
+# before this workflow can push.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "wikis/**"
+      - ".github/workflows/publish-wiki.yml"
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+concurrency:
+  group: publish-wiki
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    name: Sync wikis/ to GitHub Wiki
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Sync to wiki
+        uses: Andrew-Chen-Wang/github-wiki-action@v4
+        with:
+          path: wikis/
+          token: ${{ secrets.GITHUB_TOKEN }}
