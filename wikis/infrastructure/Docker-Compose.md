@@ -4,7 +4,7 @@
 
 ## Purpose
 
-A single file that defines every long-running infrastructure dependency Konnect needs locally — Postgres, RabbitMQ, Fuseki, plus an opt-in Ollama for local AI. Versions are pinned, ports are bound to localhost, healthchecks are defined, and named volumes preserve state across restarts. The goal: a new contributor runs one command and has a working dev environment in under five minutes.
+A single file that defines every long-running infrastructure dependency Konnect needs locally — Postgres, RabbitMQ, Fuseki, smtp4dev (a fake SMTP catcher so dev mail never leaves the machine), plus an opt-in Ollama for local AI. Versions are pinned, ports are bound to localhost, healthchecks are defined, and named volumes preserve state across restarts. The goal: a new contributor runs one command and has a working dev environment in under five minutes.
 
 ## File layout
 
@@ -22,6 +22,7 @@ services:
   postgres:    ...
   rabbitmq:    ...
   fuseki:      ...
+  smtp4dev:    ...
   ollama:      ... profiles: ["ai-local"]    # opt-in, not started by default
 ```
 
@@ -45,7 +46,7 @@ Compose profiles let one file describe both a "default" stack and an "everything
 
 | Profile | Brings up | When to use |
 |---|---|---|
-| *(none)* | postgres, rabbitmq, fuseki | Default — `docker compose up -d` |
+| *(none)* | postgres, rabbitmq, fuseki, smtp4dev | Default — `docker compose up -d` |
 | `ai-local` | + ollama (heavy: ~5–10 GB once a model is pulled) | When working on AI features locally and you don't want to burn Gemini quota |
 
 ```bash
@@ -96,6 +97,7 @@ flowchart LR
 | `postgres` | `pg_isready -U konnect -d konnect` | Confirms Postgres is accepting connections, not just running |
 | `rabbitmq` | `rabbitmq-diagnostics -q ping` | Confirms the broker is fully booted (it boots slowly) |
 | `fuseki` | `curl -fsS http://localhost:3030/$/ping` | Confirms the SPARQL endpoint is serving |
+| `smtp4dev` | `curl -fsS http://localhost:80/api/Server` | Confirms the SMTP catcher's management API is up (the SMTP listener is up by then too) |
 | `ollama` | `ollama list` | Confirms the LLM runtime is responsive |
 
 `docker compose ps` shows the health column — wait for everything to say `(healthy)` before running the WebAPI.

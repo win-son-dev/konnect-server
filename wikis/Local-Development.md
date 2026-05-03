@@ -45,11 +45,12 @@ flowchart LR
     Dev -->|5432| Postgres[(postgres<br/>pgvector/pgvector:pg17)]
     Dev -->|5672 AMQP<br/>15672 management| Rabbit[(rabbitmq<br/>4-management)]
     Dev -->|3030| Fuseki[(fuseki<br/>stain/jena-fuseki:5.0.0)]
+    Dev -->|2525 SMTP<br/>5050 UI| Smtp[(smtp4dev<br/>rnwood/smtp4dev:v3)]
     Dev -. profile=ai-local<br/>11434 .-> Ollama[(ollama)]
 
     classDef infra fill:#264653,stroke:#1b2a3a,color:#fff
     classDef opt fill:#6c757d,stroke:#343a40,color:#fff
-    class Postgres,Rabbit,Fuseki infra
+    class Postgres,Rabbit,Fuseki,Smtp infra
     class Ollama opt
 ```
 
@@ -59,6 +60,8 @@ flowchart LR
 | RabbitMQ AMQP | `amqp://konnect:konnect_dev_only@127.0.0.1:5672/konnect` | user `konnect` / password `konnect_dev_only` / vhost `konnect` |
 | RabbitMQ management UI | http://127.0.0.1:15672 | as above |
 | Fuseki | http://127.0.0.1:3030 | admin password `konnect_dev_only` |
+| smtp4dev SMTP | `127.0.0.1:2525` | none (dev catcher — captures, never relays) |
+| smtp4dev inbox UI | http://127.0.0.1:5050 | none |
 | Ollama (optional) | http://127.0.0.1:11434 | none — start with `docker compose --profile ai-local up -d` |
 
 ## Day-to-day commands

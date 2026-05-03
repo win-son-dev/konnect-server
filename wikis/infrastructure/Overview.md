@@ -9,6 +9,7 @@ flowchart TB
         Postgres[(postgres<br/>pgvector/pgvector:pg17)]
         Rabbit[(rabbitmq<br/>4-management)]
         Fuseki[(fuseki<br/>stain/jena-fuseki:5.0.0)]
+        Smtp[(smtp4dev<br/>rnwood/smtp4dev:v3)]
         Ollama[(ollama — opt-in profile)]
     end
 
@@ -20,7 +21,7 @@ flowchart TB
 
     classDef store fill:#264653,stroke:#1b2a3a,color:#fff
     classDef proc fill:#7b2cbf,stroke:#3c096c,color:#fff
-    class Postgres,Rabbit,Fuseki,Ollama store
+    class Postgres,Rabbit,Fuseki,Smtp,Ollama store
     class WebAPI,Worker,Serverless proc
 ```
 
@@ -29,6 +30,7 @@ flowchart TB
 | PostgreSQL + pgvector | `pgvector/pgvector:pg17` | 5432 | [PostgreSQL](PostgreSQL) |
 | RabbitMQ | `rabbitmq:4-management` | 5672 (AMQP), 15672 (UI) | [RabbitMQ](RabbitMQ) |
 | Apache Jena Fuseki | `stain/jena-fuseki:5.0.0` | 3030 | [Apache Jena Fuseki](Apache-Jena-Fuseki) |
+| smtp4dev | `rnwood/smtp4dev:v3` | 2525 (SMTP), 5050 (UI) | [smtp4dev](smtp4dev) |
 | Ollama (opt-in) | `ollama/ollama:latest` | 11434 | — |
 
 ## Tooling not in compose
