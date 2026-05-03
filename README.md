@@ -89,3 +89,11 @@ Documentation lives in the wiki and ships in the same PR as the code change it d
 ## Attribution
 
 This project uses the **European Skills, Competences, Qualifications and Occupations (ESCO)** classification, © European Union, 2024, licensed under the [Creative Commons Attribution 4.0 International (CC BY 4.0)](https://creativecommons.org/licenses/by/4.0/) licence. ESCO is not bundled with this repo — it is downloaded into the Fuseki container at first run by [`Konnect.Platform/infra/fuseki/load-esco.sh`](Konnect.Platform/infra/fuseki/load-esco.sh). See the [Apache Jena Fuseki wiki page](https://github.com/win-son-dev/konnect-server/wiki/Apache-Jena-Fuseki) for the loader pipeline and dataset structure.
+
+## License
+
+**Copyright (c) 2026 win-son-dev. All rights reserved.**
+
+This source code is published for portfolio viewing only. No part of this codebase may be copied, modified, distributed, executed, or used in any form — commercial or non-commercial — without prior written permission from the copyright holder.
+
+External contributions are not accepted at this time.
