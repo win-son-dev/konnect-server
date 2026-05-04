@@ -16,12 +16,16 @@ This wiki is the deep-dive layer for collaborators. The repo `README.md` is the 
   - [smtp4dev](infrastructure/smtp4dev)
   - [Docker Compose](infrastructure/Docker-Compose)
   - [CI Pipeline](infrastructure/CI-Pipeline)
-- **Features** — feature pages get added when each feature is implemented.
+- **[Features](Features)** — index of every feature Konnect ships or plans to ship, with status (Planned / In Progress / Shipped) and links to the GitHub Story that holds the spec. Per-feature deep-dive pages get added under `wikis/features/` when each feature ships.
 - **API** — endpoint pages get added when each endpoint is implemented.
 
 ## Documentation principle
 
 The wiki documents **what is implemented**, not what is planned. A wiki page describes only behaviour you can observe in the running code today. If a code change has wiki impact — a new endpoint, a new container, a changed wiring — the wiki update ships in the same PR. The wiki is part of the codebase.
+
+The one exception is [Features](Features), which is a navigational index — it lists planned features as rows pointing at their GitHub Story. The Story body is the source of truth for unbuilt behaviour; the wiki page is just the index. Detailed behaviour descriptions only land on a per-feature wiki page once the feature ships.
+
+Every PR that introduces, ships, or removes a feature updates [Features](Features) in the same PR — same convention as the broader wiki-in-same-PR rule.
 
 ## Conventions
 
