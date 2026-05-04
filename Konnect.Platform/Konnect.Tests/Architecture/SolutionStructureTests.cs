@@ -45,11 +45,16 @@ public class SolutionStructureTests
     {
         var infrastructureAssembly = Assembly.Load("Konnect.Infrastructure");
 
+        // Entity POCOs (data shapes for EF Core / domain models) are explicitly
+        // permitted in Konnect.Infrastructure.Entities — they're contracts, not
+        // implementations. The Repository / Service interfaces in Infrastructure
+        // need to reference them, so they must live alongside.
         var concreteImplementationTypes = infrastructureAssembly.GetExportedTypes()
             .Where(exportedType => exportedType.IsClass)
             .Where(exportedType => !exportedType.IsAbstract)
             .Where(exportedType => !IsRecordType(exportedType))
             .Where(exportedType => !IsCompilerGenerated(exportedType))
+            .Where(exportedType => exportedType.Namespace != "Konnect.Infrastructure.Entities")
             .ToArray();
 
         Assert.Empty(concreteImplementationTypes);

@@ -56,10 +56,17 @@ docker compose exec postgres psql -U konnect -d konnect \
   -c "SELECT extname, extversion FROM pg_extension ORDER BY extname;"
 ```
 
+## Schema
+
+The Phase 1 schema is documented on [Database Schema](Database-Schema). High level: nine tables — the seven ASP.NET Identity tables (`users`, `roles`, `user_roles`, `user_claims`, `user_logins`, `user_tokens`, `role_claims`) plus `companies` and `job_postings`, all in snake_case. The `users` table holds both `JobSeekerUser` and `RecruiterUser` rows via TPH (one table, `audience` discriminator column).
+
+The `pgvector` extension is installed in the image but no `vector` columns exist yet — those land in Phase 3 (resume + job-posting embeddings).
+
 ## Code touchpoints
 
 | File | Role |
 |---|---|
 | [`Konnect.Platform/docker-compose.yml`](https://github.com/win-son-dev/konnect-server/blob/main/Konnect.Platform/docker-compose.yml) | Container definition, healthcheck, volume |
-
-The `Konnect.Repositories` project exists but currently contains only the csproj. The `KonnectDbContext`, migrations, and repository implementations will be documented here when they're added.
+| [`Konnect.Repositories/KonnectDbContext.cs`](https://github.com/win-son-dev/konnect-server/blob/main/Konnect.Platform/Konnect.Repositories/KonnectDbContext.cs) | EF Core session — `IdentityDbContext<User, IdentityRole<Guid>, Guid>` with snake_case naming + table renames forced on the Identity tables |
+| [`Konnect.Repositories/Migrations/`](https://github.com/win-son-dev/konnect-server/tree/main/Konnect.Platform/Konnect.Repositories/Migrations) | EF migrations. The single `InitialCreate` migration ships every Phase 1 table. |
+| [`Konnect.WebAPI/appsettings.Development.json`](https://github.com/win-son-dev/konnect-server/blob/main/Konnect.Platform/Konnect.WebAPI/appsettings.Development.json) | Dev `ConnectionStrings.Postgres` — points at the compose container above |
