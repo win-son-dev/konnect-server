@@ -40,16 +40,16 @@ Out-of-date rows are bugs.
 
 | Feature | Status | Issue / Story | Wiki |
 |---|---|---|---|
-| Identity tables + roles (`JobSeeker`, `Recruiter`, `CompanyAdmin`, `Admin`) + initial migration | In Progress | [#21](https://github.com/win-son-dev/konnect-server/issues/21) (parent [#20](https://github.com/win-son-dev/konnect-server/issues/20)) | [Database Schema](infrastructure/Database-Schema) |
-| Seeker auth — `POST /api/auth/seeker/{register,login,refresh}` (`aud: "seeker"` JWT) | Planned | [#22](https://github.com/win-son-dev/konnect-server/issues/22) | — |
-| Employer auth — `POST /api/auth/employer/*` with atomic Company + first Recruiter | Planned | [#23](https://github.com/win-son-dev/konnect-server/issues/23) | — |
+| Auth0-backed authentication (audience-split JWT, no homegrown credentials) — JwtBearer + namespaced custom claims (`external_id`, `role`); Pre-User-Registration + Post-Login Actions on the Auth0 side | In Progress | [#46](https://github.com/win-son-dev/konnect-server/issues/46) (parent [#20](https://github.com/win-son-dev/konnect-server/issues/20); supersedes [#22](https://github.com/win-son-dev/konnect-server/issues/22), [#23](https://github.com/win-son-dev/konnect-server/issues/23)) | [Authentication — Auth0](api/Authentication-Auth0) |
+| Lean profile schema — `users` table keyed by Auth0-generated `external_id` Guid, TPH discriminator for JobSeeker / Recruiter, no Identity tables | In Progress | [#46](https://github.com/win-son-dev/konnect-server/issues/46) | [Database Schema](infrastructure/Database-Schema) |
 | Authorization policies (`RequireJobSeeker`, `RequireRecruiter`, `RequireCompanyAdmin`, `RequireOwnsPosting`, etc.) | Planned | [#26](https://github.com/win-son-dev/konnect-server/issues/26) | — |
+| Social login (LinkedIn / Google / GitHub via Auth0) — deferred until after Phase 1; needs Management API write-back path for Konnect-side `external_id` provisioning on social signups | Planned | _(follow-up issue to be created)_ | — |
 
 ## Companies & recruiters
 
 | Feature | Status | Issue / Story | Wiki |
 |---|---|---|---|
-| Multi-recruiter Company model (Company has many Recruiter; CompanyAdmin role) | In Progress | [#21](https://github.com/win-son-dev/konnect-server/issues/21) | [Database Schema](infrastructure/Database-Schema) |
+| Multi-recruiter Company model (Company has many Recruiter; recruiter role from Auth0 JWT claim, no Identity role table) | In Progress | [#46](https://github.com/win-son-dev/konnect-server/issues/46) | [Database Schema](infrastructure/Database-Schema) |
 | Company GraphQL — public `Query.company(slug)` + recruiter-scoped queries / `updateCompany` mutation | Planned | [#24](https://github.com/win-son-dev/konnect-server/issues/24) | — |
 | Recruiter invitation flow (existing CompanyAdmin invites another recruiter) | Planned | _(deferred to Phase 1.5 — needs email infrastructure)_ | — |
 

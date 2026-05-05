@@ -1,43 +1,36 @@
 using Konnect.Infrastructure.Entities;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
 namespace Konnect.Repositories;
 
 /// <summary>
-/// Konnect's EF Core session. Inherits from <see cref="IdentityDbContext{TUser, TRole, TKey}"/>
-/// so the ASP.NET Identity tables (<c>asp_net_users</c>, <c>asp_net_roles</c>, etc.)
-/// land in the same database as the domain tables. The User hierarchy is TPH —
-/// see <c>UserConfiguration</c> for the discriminator setup.
+/// Konnect's EF Core session. Plain <see cref="DbContext"/> — Konnect does
+/// not store passwords or Identity tokens, so there is no
+/// <c>IdentityDbContext</c> base and no <c>asp_net_*</c> tables. Authentication
+/// is owned by Auth0; the <c>users</c> table holds profile rows keyed by the
+/// Auth0-generated <c>external_id</c> Guid (see <see cref="User.Id"/>).
 /// </summary>
-public class KonnectDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid>
+public class KonnectDbContext : DbContext
 {
     public KonnectDbContext(DbContextOptions<KonnectDbContext> options)
         : base(options)
     {
     }
 
+    public DbSet<User> Users => Set<User>();
+
+    public DbSet<JobSeekerUser> JobSeekers => Set<JobSeekerUser>();
+
+    public DbSet<RecruiterUser> Recruiters => Set<RecruiterUser>();
+
     public DbSet<Company> Companies => Set<Company>();
 
     public DbSet<JobPosting> JobPostings => Set<JobPosting>();
 
-    protected override void OnModelCreating(ModelBuilder builder)
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        base.OnModelCreating(builder);
+        base.OnModelCreating(modelBuilder);
 
-        builder.ApplyConfigurationsFromAssembly(typeof(KonnectDbContext).Assembly);
-
-        // IdentityDbContext.OnModelCreating hard-codes PascalCase table names
-        // (AspNetRoles, AspNetUserRoles, ...) which the snake_case convention
-        // can't override. Force the names here AND drop the framework's
-        // "asp_net_" prefix — Konnect has only one user concept, so the
-        // shorter names read cleaner in psql and don't leak the framework.
-        builder.Entity<IdentityRole<Guid>>().ToTable("roles");
-        builder.Entity<IdentityUserRole<Guid>>().ToTable("user_roles");
-        builder.Entity<IdentityUserClaim<Guid>>().ToTable("user_claims");
-        builder.Entity<IdentityUserLogin<Guid>>().ToTable("user_logins");
-        builder.Entity<IdentityUserToken<Guid>>().ToTable("user_tokens");
-        builder.Entity<IdentityRoleClaim<Guid>>().ToTable("role_claims");
+        modelBuilder.ApplyConfigurationsFromAssembly(typeof(KonnectDbContext).Assembly);
     }
 }
