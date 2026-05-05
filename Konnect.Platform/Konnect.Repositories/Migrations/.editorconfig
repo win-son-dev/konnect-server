@@ -1,0 +1,5 @@
+# EF Core generates migration scaffolding that doesn't follow our hand-written style rules.
+# Suppress the relevant analyzers for this folder only — leave the rest of the project strict.
+[*.cs]
+dotnet_diagnostic.IDE0161.severity = none  # Convert to file-scoped namespace
+dotnet_diagnostic.CA1861.severity = none   # Prefer static readonly over constant array arg

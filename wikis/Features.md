@@ -40,7 +40,7 @@ Out-of-date rows are bugs.
 
 | Feature | Status | Issue / Story | Wiki |
 |---|---|---|---|
-| Identity tables + roles (`JobSeeker`, `Recruiter`, `CompanyAdmin`, `Admin`) + initial migration | Planned | [#21](https://github.com/win-son-dev/konnect-server/issues/21) (parent [#20](https://github.com/win-son-dev/konnect-server/issues/20)) | — |
+| Identity tables + roles (`JobSeeker`, `Recruiter`, `CompanyAdmin`, `Admin`) + initial migration | In Progress | [#21](https://github.com/win-son-dev/konnect-server/issues/21) (parent [#20](https://github.com/win-son-dev/konnect-server/issues/20)) | [Database Schema](infrastructure/Database-Schema) |
 | Seeker auth — `POST /api/auth/seeker/{register,login,refresh}` (`aud: "seeker"` JWT) | Planned | [#22](https://github.com/win-son-dev/konnect-server/issues/22) | — |
 | Employer auth — `POST /api/auth/employer/*` with atomic Company + first Recruiter | Planned | [#23](https://github.com/win-son-dev/konnect-server/issues/23) | — |
 | Authorization policies (`RequireJobSeeker`, `RequireRecruiter`, `RequireCompanyAdmin`, `RequireOwnsPosting`, etc.) | Planned | [#26](https://github.com/win-son-dev/konnect-server/issues/26) | — |
@@ -49,7 +49,7 @@ Out-of-date rows are bugs.
 
 | Feature | Status | Issue / Story | Wiki |
 |---|---|---|---|
-| Multi-recruiter Company model (Company has many Recruiter; CompanyAdmin role) | Planned | [#21](https://github.com/win-son-dev/konnect-server/issues/21) | — |
+| Multi-recruiter Company model (Company has many Recruiter; CompanyAdmin role) | In Progress | [#21](https://github.com/win-son-dev/konnect-server/issues/21) | [Database Schema](infrastructure/Database-Schema) |
 | Company GraphQL — public `Query.company(slug)` + recruiter-scoped queries / `updateCompany` mutation | Planned | [#24](https://github.com/win-son-dev/konnect-server/issues/24) | — |
 | Recruiter invitation flow (existing CompanyAdmin invites another recruiter) | Planned | _(deferred to Phase 1.5 — needs email infrastructure)_ | — |
 
