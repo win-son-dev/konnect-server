@@ -1,16 +1,14 @@
 using Konnect.GraphQL;
+using Konnect.Infrastructure.Services.Authentication;
 using Konnect.Repositories;
-using Konnect.Infrastructure.Entities;
-using Konnect.Services.Identity;
-using Konnect.WebAPI.HostedServices;
-using Microsoft.AspNetCore.Identity;
+using Konnect.WebAPI.Middleware;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.Extensions.Options;
+using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-
 builder.Services.AddControllers();
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 builder.Services.AddKonnectGraphQL();
 
@@ -19,30 +17,63 @@ var postgresConnectionString = builder.Configuration.GetConnectionString("Postgr
 
 builder.Services.AddKonnectRepositories(postgresConnectionString);
 
-// Required by AddDefaultTokenProviders below — token providers need
-// a registered IDataProtectionProvider to encrypt their tokens.
-builder.Services.AddDataProtection();
+// Bind the Auth0 section lazily. Eager reads (e.g. .Get<Auth0Settings>())
+// would happen before WebApplicationFactory's in-memory configuration
+// overlay reaches the configuration tree, so integration tests cannot
+// substitute their own values. The validator below runs at host start in
+// non-test environments to catch a missing prod config early.
+builder.Services
+    .AddOptions<Auth0Settings>()
+    .Bind(builder.Configuration.GetSection(Auth0Settings.SectionName))
+    .Validate(
+        settings => !string.IsNullOrWhiteSpace(settings.Domain),
+        "Auth0:Domain is required.");
+
+if (!builder.Environment.IsEnvironment("Test"))
+{
+    builder.Services.AddOptions<Auth0Settings>().ValidateOnStart();
+}
+
+var requireHttpsMetadata = !builder.Environment.IsDevelopment();
 
 builder.Services
-    .AddIdentityCore<User>(options =>
+    .AddOptions<JwtBearerOptions>(JwtBearerDefaults.AuthenticationScheme)
+    .Configure<IOptions<Auth0Settings>>((jwtBearerOptions, auth0Options) =>
     {
-        options.Password.RequireDigit = true;
-        options.Password.RequireLowercase = true;
-        options.Password.RequireUppercase = true;
-        options.Password.RequiredLength = 10;
-        options.User.RequireUniqueEmail = true;
-    })
-    .AddRoles<IdentityRole<Guid>>()
-    .AddEntityFrameworkStores<KonnectDbContext>()
-    .AddDefaultTokenProviders();
+        var auth0Settings = auth0Options.Value;
+        var auth0Authority = $"https://{auth0Settings.Domain}/";
 
-builder.Services.AddKonnectIdentityServices();
+        jwtBearerOptions.Authority = auth0Authority;
+        jwtBearerOptions.RequireHttpsMetadata = requireHttpsMetadata;
+        jwtBearerOptions.MapInboundClaims = false;
+        jwtBearerOptions.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidIssuer = auth0Authority,
+            ValidateAudience = true,
+            ValidAudiences =
+            [
+                auth0Settings.SeekerAudience,
+                auth0Settings.EmployerAudience,
+            ],
+            ValidateIssuerSigningKey = true,
+            ValidateLifetime = true,
+            // The Post-Login Action stamps the role under our namespaced
+            // claim — wire it through so [Authorize(Roles = "JobSeeker")]
+            // reads the right value.
+            RoleClaimType = KonnectClaimTypes.Role,
+            NameClaimType = KonnectClaimTypes.ExternalId,
+        };
+    });
 
-builder.Services.AddHostedService<DataSeederHostedService>();
+builder.Services
+    .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer();
+
+builder.Services.AddAuthorization();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
@@ -50,6 +81,8 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+app.UseAuthentication();
+app.UseMiddleware<KonnectAuthenticationMiddleware>();
 app.UseAuthorization();
 
 app.MapControllers();

@@ -79,23 +79,37 @@ Per-csproj files inherit everything from the directory props — they typically 
 `Konnect.WebAPI` is the integration point. Its [`Program.cs`](https://github.com/win-son-dev/konnect-server/blob/main/Konnect.Platform/Konnect.WebAPI/Program.cs) wires:
 
 ```csharp
-builder.Services.AddControllers();      // REST surface (no controllers exist yet)
+builder.Services.AddControllers();      // REST surface
 builder.Services.AddOpenApi();          // /openapi/v1.json in development
 builder.Services.AddKonnectGraphQL();   // /graphql + HotChocolate pipeline
+builder.Services.AddKonnectRepositories(...);
+
+// Auth0 OIDC — JwtBearer scheme accepts tokens for both seeker + employer audiences
+builder.Services.AddOptions<Auth0Settings>().Bind(...);
+builder.Services.AddOptions<JwtBearerOptions>(JwtBearerDefaults.AuthenticationScheme).Configure<IOptions<Auth0Settings>>(...);
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer();
+builder.Services.AddAuthorization();
 
 // ...
+
+app.UseAuthentication();
+app.UseMiddleware<KonnectAuthenticationMiddleware>();   // claim-validation, no DB
+app.UseAuthorization();
 
 app.MapControllers();
 app.MapGraphQL();
 ```
 
-Today, the only HTTP routes that respond are:
+Today, the routes that respond are:
 
-| Route | What it returns |
-|---|---|
-| `POST /graphql` | The single query `{ healthcheck }` — see [`Konnect.GraphQL/Schema/Query.cs`](https://github.com/win-son-dev/konnect-server/blob/main/Konnect.Platform/Konnect.GraphQL/Schema/Query.cs) |
-| `GET /graphql` *(dev only)* | Banana Cake Pop / Nitro UI |
-| `GET /openapi/v1.json` *(dev only)* | OpenAPI document — empty other than the GraphQL endpoint, since no controllers exist yet |
+| Route | What it returns | Auth |
+|---|---|---|
+| `GET /api/me` | The authenticated caller's `external_id`, `role`, and `email`, distilled from JWT claims. Useful as an auth smoke test from the SPAs. | `[Authorize]` |
+| `POST /graphql` | The single query `{ healthcheck }` — see [`Konnect.GraphQL/Schema/Query.cs`](https://github.com/win-son-dev/konnect-server/blob/main/Konnect.Platform/Konnect.GraphQL/Schema/Query.cs) | anonymous |
+| `GET /graphql` *(dev only)* | Banana Cake Pop / Nitro UI | anonymous |
+| `GET /openapi/v1.json` *(dev only)* | OpenAPI document | anonymous |
+
+Authentication is delegated to **Auth0** — Konnect never stores passwords, never issues JWTs, and holds no refresh-token state. The full picture (tenant setup, the two Auth0 Actions, the audience-split, the operational note about the Pre-User-Registration Action) lives on the [Authentication — Auth0](api/Authentication-Auth0) page.
 
 The convention: each cross-cutting concern is registered through a single extension method that lives in the project that owns it. `AddKonnectGraphQL()` lives in [`Konnect.GraphQL/GraphQLServiceCollectionExtensions.cs`](https://github.com/win-son-dev/konnect-server/blob/main/Konnect.Platform/Konnect.GraphQL/GraphQLServiceCollectionExtensions.cs). Future concerns follow the same shape — `Program.cs` stays a short list of capabilities, not a wiring tangle.
 
@@ -105,7 +119,7 @@ The local stack is defined in [`Konnect.Platform/docker-compose.yml`](https://gi
 
 | Service | What .NET code uses it today |
 |---|---|
-| PostgreSQL + pgvector | Nothing yet — `Konnect.Repositories` is empty |
+| PostgreSQL + pgvector | `Konnect.Repositories` — `KonnectDbContext` (plain `DbContext`, no Identity tables) holds the `users`, `companies`, `job_postings` schema. The `users` table is keyed by the Auth0-generated `external_id` Guid. |
 | RabbitMQ | Nothing yet — `Konnect.Worker` has no consumers |
 | Apache Jena Fuseki | Nothing yet — no SPARQL client exists. The ESCO loader script can be run on demand |
 | Ollama (opt-in profile) | Nothing yet — no `IAiClient` exists |
@@ -125,6 +139,7 @@ A single workflow at [`.github/workflows/ci.yml`](https://github.com/win-son-dev
 
 ## Where to look next
 
+- [Authentication — Auth0](api/Authentication-Auth0) — tenant setup, the two Auth0 Actions, audience-split, dev / test / prod config.
 - [Local Development](Local-Development) — getting a working dev environment.
 - [Infrastructure overview](infrastructure/Overview) — what runs in compose, why, and how to operate it.
 - [CI Pipeline](infrastructure/CI-Pipeline) — what gates a merge.

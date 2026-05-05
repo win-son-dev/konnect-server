@@ -40,6 +40,32 @@ public class SolutionStructureTests
         Assert.Contains("Konnect.GraphQL", referencedAssemblyNames);
     }
 
+    [Theory]
+    [InlineData("Konnect.Infrastructure")]
+    [InlineData("Konnect.Repositories")]
+    [InlineData("Konnect.Services")]
+    [InlineData("Konnect.GraphQL")]
+    [InlineData("Konnect.WebAPI")]
+    [InlineData("Konnect.Worker")]
+    [InlineData("Konnect.Serverless")]
+    public void NoProject_References_AspNetCoreIdentity(string assemblyName)
+    {
+        // Konnect outsources credentials to Auth0; ASP.NET Core Identity is
+        // intentionally absent from the entire solution. Catching the
+        // dependency creeping back in (via a transitive package add or a
+        // copy-pasted snippet) is the point of this test.
+        var assembly = Assembly.Load(assemblyName);
+
+        var referencedAssemblyNames = assembly.GetReferencedAssemblies()
+            .Select(referencedAssembly => referencedAssembly.Name)
+            .ToArray();
+
+        Assert.DoesNotContain("Microsoft.AspNetCore.Identity", referencedAssemblyNames);
+        Assert.DoesNotContain("Microsoft.AspNetCore.Identity.EntityFrameworkCore", referencedAssemblyNames);
+        Assert.DoesNotContain("Microsoft.Extensions.Identity.Core", referencedAssemblyNames);
+        Assert.DoesNotContain("Microsoft.Extensions.Identity.Stores", referencedAssemblyNames);
+    }
+
     [Fact]
     public void Infrastructure_ContainsNoConcreteImplementationClasses()
     {
