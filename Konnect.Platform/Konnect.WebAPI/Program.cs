@@ -1,6 +1,8 @@
 using Konnect.GraphQL;
+using Konnect.Infrastructure.Repositories;
 using Konnect.Infrastructure.Services.Authentication;
 using Konnect.Repositories;
+using Konnect.Services;
 using Konnect.WebAPI.Middleware;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.Options;
@@ -12,10 +14,23 @@ builder.Services.AddControllers();
 builder.Services.AddOpenApi();
 builder.Services.AddKonnectGraphQL();
 
-var postgresConnectionString = builder.Configuration.GetConnectionString("Postgres")
-    ?? throw new InvalidOperationException("Connection string 'Postgres' is required.");
+// Strongly-typed options for every infrastructure dependency. Bound lazily
+// so the validators run when the options are first resolved, and so test
+// overrides via services.Configure<T> apply cleanly.
+builder.Services
+    .AddOptions<DatabaseOptions>()
+    .Bind(builder.Configuration.GetSection(DatabaseOptions.SectionName))
+    .Validate(
+        options => !string.IsNullOrWhiteSpace(options.PostgresConnectionString),
+        "Database:PostgresConnectionString is required.");
 
-builder.Services.AddKonnectRepositories(postgresConnectionString);
+if (!builder.Environment.IsEnvironment("Test"))
+{
+    builder.Services.AddOptions<DatabaseOptions>().ValidateOnStart();
+}
+
+builder.Services.AddKonnectRepositories();
+builder.Services.AddKonnectServices();
 
 // Bind the Auth0 section lazily. Eager reads (e.g. .Get<Auth0Settings>())
 // would happen before WebApplicationFactory's in-memory configuration

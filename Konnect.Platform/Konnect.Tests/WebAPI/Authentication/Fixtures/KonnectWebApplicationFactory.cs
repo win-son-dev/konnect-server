@@ -1,9 +1,10 @@
+using Konnect.Infrastructure.Repositories;
+using Konnect.Infrastructure.Services.Authentication;
 using Konnect.WebAPI;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
@@ -18,7 +19,7 @@ namespace Konnect.Tests.WebAPI.Authentication.Fixtures;
 /// the bearer scheme never tries to fetch OIDC discovery from the
 /// (non-existent) Auth0 tenant.
 /// </summary>
-public sealed class KonnectWebApplicationFactory : WebApplicationFactory<WebApiEntryPoint>
+public class KonnectWebApplicationFactory : WebApplicationFactory<WebApiEntryPoint>
 {
     public TestJwtTokenFactory TokenFactory { get; } = new();
 
@@ -26,28 +27,43 @@ public sealed class KonnectWebApplicationFactory : WebApplicationFactory<WebApiE
 
     public const string EmployerAudience = "https://api.konnect.test/employer";
 
+    /// <summary>
+    /// Postgres connection string the test host should bind to. Defaults to a
+    /// dummy value that's good enough for tests which never open a real
+    /// connection (the entire auth-pipeline suite); DB-backed integration
+    /// tests assign a Testcontainers-backed connection string from
+    /// <see cref="Konnect.Tests.Infrastructure.PostgresFixture"/> before
+    /// creating a client. xUnit's <c>IClassFixture&lt;T&gt;</c> requires a
+    /// single parameterless ctor, so the override path is a settable
+    /// property rather than a ctor parameter.
+    /// </summary>
+    public string PostgresConnectionString { get; set; }
+        = "Host=127.0.0.1;Port=5432;Database=konnect_unused;Username=u;Password=p";
+
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         builder.UseEnvironment("Test");
 
-        builder.ConfigureAppConfiguration((_, configuration) =>
-        {
-            configuration.AddInMemoryCollection(new Dictionary<string, string?>
-            {
-                // Real Postgres is irrelevant for auth-pipeline tests — every
-                // assertion is about the bearer scheme + middleware. The
-                // connection string just has to be present so AddDbContext
-                // does not throw at startup.
-                ["ConnectionStrings:Postgres"] =
-                    "Host=127.0.0.1;Port=5432;Database=konnect_unused;Username=u;Password=p",
-                ["Auth0:Domain"] = "konnect-test.auth0.local",
-                ["Auth0:SeekerAudience"] = SeekerAudience,
-                ["Auth0:EmployerAudience"] = EmployerAudience,
-            });
-        });
-
+        // Override every typed-options binding via Configure<T>.
+        // ConfigureTestServices runs LATE (after Program.cs has registered
+        // its bindings) and last-call-wins semantics mean these reliably
+        // substitute the test values regardless of when Program.cs reads
+        // configuration — which dodges the host-builder timing race that
+        // ConfigureAppConfiguration is subject to in minimal hosting.
         builder.ConfigureTestServices(services =>
         {
+            services.Configure<DatabaseOptions>(options =>
+            {
+                options.PostgresConnectionString = PostgresConnectionString;
+            });
+
+            services.Configure<Auth0Settings>(options =>
+            {
+                options.Domain = "konnect-test.auth0.local";
+                options.SeekerAudience = SeekerAudience;
+                options.EmployerAudience = EmployerAudience;
+            });
+
             services.AddSingleton<IPostConfigureOptions<JwtBearerOptions>>(
                 _ => new TestJwtBearerOptionsPostConfigure(TokenFactory));
         });

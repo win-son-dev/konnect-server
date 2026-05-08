@@ -32,9 +32,15 @@ public sealed class CompanyConfiguration : IEntityTypeConfiguration<Company>
             .HasDefaultValue(false);
 
         builder.Property(company => company.CreatedAt)
-            .IsRequired();
+            .IsRequired()
+            .HasDefaultValueSql("CURRENT_TIMESTAMP")
+            .ValueGeneratedOnAdd();
 
         builder.Property(company => company.UpdatedAt)
-            .IsRequired();
+            .IsRequired()
+            .HasDefaultValueSql("CURRENT_TIMESTAMP")
+            .ValueGeneratedOnAddOrUpdate();
+
+        builder.ToTable(table => table.HasTrigger("set_updated_at_companies"));
     }
 }
