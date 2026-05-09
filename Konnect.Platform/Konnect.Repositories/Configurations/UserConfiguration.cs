@@ -30,10 +30,21 @@ public sealed class UserConfiguration : IEntityTypeConfiguration<User>
 
         builder.HasIndex(user => user.Email);
 
+        // Both timestamps are owned by Postgres: CURRENT_TIMESTAMP fills
+        // them on INSERT, the set_updated_at trigger refreshes UpdatedAt on
+        // every UPDATE. Services never assign these — keeps app- and DB-clock
+        // skew impossible and removes a TimeProvider dependency from every
+        // write path.
         builder.Property(user => user.CreatedAt)
-            .IsRequired();
+            .IsRequired()
+            .HasDefaultValueSql("CURRENT_TIMESTAMP")
+            .ValueGeneratedOnAdd();
 
         builder.Property(user => user.UpdatedAt)
-            .IsRequired();
+            .IsRequired()
+            .HasDefaultValueSql("CURRENT_TIMESTAMP")
+            .ValueGeneratedOnAddOrUpdate();
+
+        builder.ToTable(table => table.HasTrigger("set_updated_at_users"));
     }
 }

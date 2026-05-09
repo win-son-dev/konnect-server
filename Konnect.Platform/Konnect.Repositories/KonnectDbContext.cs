@@ -10,13 +10,8 @@ namespace Konnect.Repositories;
 /// is owned by Auth0; the <c>users</c> table holds profile rows keyed by the
 /// Auth0-generated <c>external_id</c> Guid (see <see cref="User.Id"/>).
 /// </summary>
-public class KonnectDbContext : DbContext
+public class KonnectDbContext(DbContextOptions<KonnectDbContext> options) : DbContext(options)
 {
-    public KonnectDbContext(DbContextOptions<KonnectDbContext> options)
-        : base(options)
-    {
-    }
-
     public DbSet<User> Users => Set<User>();
 
     public DbSet<JobSeekerUser> JobSeekers => Set<JobSeekerUser>();

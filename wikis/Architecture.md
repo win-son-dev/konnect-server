@@ -82,10 +82,18 @@ Per-csproj files inherit everything from the directory props — they typically 
 builder.Services.AddControllers();      // REST surface
 builder.Services.AddOpenApi();          // /openapi/v1.json in development
 builder.Services.AddKonnectGraphQL();   // /graphql + HotChocolate pipeline
-builder.Services.AddKonnectRepositories(...);
 
-// Auth0 OIDC — JwtBearer scheme accepts tokens for both seeker + employer audiences
-builder.Services.AddOptions<Auth0Settings>().Bind(...);
+// Strongly-typed options for every infrastructure dependency. Each
+// dependency owns its own Options record (DatabaseOptions, Auth0Settings,
+// future RedisCacheOptions / MinioOptions / ...) bound from its own config
+// section — production code never reads loose IConfiguration strings.
+builder.Services.AddOptions<DatabaseOptions>().Bind(...).Validate(...);
+builder.Services.AddOptions<Auth0Settings>().Bind(...).Validate(...);
+
+builder.Services.AddKonnectRepositories();   // resolves DatabaseOptions lazily
+builder.Services.AddKonnectServices();       // onboarding + future services
+
+// Auth0 OIDC — JwtBearer scheme accepts tokens for both seeker + recruiter audiences
 builder.Services.AddOptions<JwtBearerOptions>(JwtBearerDefaults.AuthenticationScheme).Configure<IOptions<Auth0Settings>>(...);
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer();
 builder.Services.AddAuthorization();
@@ -105,11 +113,15 @@ Today, the routes that respond are:
 | Route | What it returns | Auth |
 |---|---|---|
 | `GET /api/me` | The authenticated caller's `external_id`, `role`, and `email`, distilled from JWT claims. Useful as an auth smoke test from the SPAs. | `[Authorize]` |
+| `POST /api/recruiter/onboard` | Provisions the `Company` + first `RecruiterUser` row after the SPA's first Auth0 sign-in. Idempotent on the JWT `external_id` claim. See [Onboarding](api/Onboarding). | `[Authorize(Roles = "Recruiter")]` |
+| `POST /api/seeker/onboard` | Provisions the `JobSeekerUser` row after the SPA's first Auth0 sign-in. Idempotent. | `[Authorize(Roles = "JobSeeker")]` |
 | `POST /graphql` | The single query `{ healthcheck }` — see [`Konnect.GraphQL/Schema/Query.cs`](https://github.com/win-son-dev/konnect-server/blob/main/Konnect.Platform/Konnect.GraphQL/Schema/Query.cs) | anonymous |
 | `GET /graphql` *(dev only)* | Banana Cake Pop / Nitro UI | anonymous |
 | `GET /openapi/v1.json` *(dev only)* | OpenAPI document | anonymous |
 
-Authentication is delegated to **Auth0** — Konnect never stores passwords, never issues JWTs, and holds no refresh-token state. The full picture (tenant setup, the two Auth0 Actions, the audience-split, the operational note about the Pre-User-Registration Action) lives on the [Authentication — Auth0](api/Authentication-Auth0) page.
+Authentication is delegated to **Auth0** — Konnect never stores passwords, never issues JWTs, and holds no refresh-token state. The full picture (tenant setup, the two Auth0 Actions, the audience-split, the operational note about the Pre-User-Registration Action) lives on the [Authentication — Auth0](api/Authentication-Auth0) page. Identity-to-domain handshake (the post-Auth0 onboarding step that creates the `JobSeekerUser` / `RecruiterUser` + `Company` rows) is documented on the [Onboarding](api/Onboarding) page.
+
+Audit timestamps (`created_at`, `updated_at`) are owned by Postgres: a column default plus a `BEFORE UPDATE` trigger calling a shared `set_updated_at()` function. Application services never assign these — keeps the application clock and DB clock from skewing, and the schema stays correct even if a non-EF caller (psql, ETL) writes rows. See [`Konnect.Platform/Konnect.Repositories/Migrations/20260508121429_AddDbManagedTimestamps.cs`](https://github.com/win-son-dev/konnect-server/blob/main/Konnect.Platform/Konnect.Repositories/Migrations/20260508121429_AddDbManagedTimestamps.cs).
 
 The convention: each cross-cutting concern is registered through a single extension method that lives in the project that owns it. `AddKonnectGraphQL()` lives in [`Konnect.GraphQL/GraphQLServiceCollectionExtensions.cs`](https://github.com/win-son-dev/konnect-server/blob/main/Konnect.Platform/Konnect.GraphQL/GraphQLServiceCollectionExtensions.cs). Future concerns follow the same shape — `Program.cs` stays a short list of capabilities, not a wiring tangle.
 

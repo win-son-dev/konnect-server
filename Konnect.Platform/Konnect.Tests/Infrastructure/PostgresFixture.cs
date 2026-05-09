@@ -12,8 +12,7 @@ namespace Konnect.Tests.Infrastructure;
 /// </summary>
 public sealed class PostgresFixture : IAsyncLifetime
 {
-    private readonly PostgreSqlContainer container = new PostgreSqlBuilder()
-        .WithImage("pgvector/pgvector:pg17")
+    private readonly PostgreSqlContainer container = new PostgreSqlBuilder("pgvector/pgvector:pg17")
         .WithDatabase("konnect_test")
         .WithUsername("konnect_test")
         .WithPassword("konnect_test_only")
@@ -29,10 +28,7 @@ public sealed class PostgresFixture : IAsyncLifetime
         await dbContext.Database.MigrateAsync();
     }
 
-    public async Task DisposeAsync()
-    {
-        await container.DisposeAsync();
-    }
+    public async Task DisposeAsync() => await container.DisposeAsync();
 
     public KonnectDbContext CreateDbContext()
     {
@@ -45,8 +41,14 @@ public sealed class PostgresFixture : IAsyncLifetime
     }
 }
 
+/// <summary>
+/// xUnit collection-definition marker. Test classes that need the shared
+/// Postgres container declare <c>[Collection(DatabaseTestSuite.Name)]</c> —
+/// xUnit groups them under one collection so they share a single
+/// <see cref="PostgresFixture"/> instance across the test run.
+/// </summary>
 [CollectionDefinition(Name)]
-public sealed class DatabaseCollection : ICollectionFixture<PostgresFixture>
+public sealed class DatabaseTestSuite : ICollectionFixture<PostgresFixture>
 {
     public const string Name = "Database";
 }

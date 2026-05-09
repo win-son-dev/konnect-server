@@ -10,16 +10,9 @@ namespace Konnect.Tests.Repositories;
 /// CRUD method against a real Postgres container. Pins the JobRepository
 /// integration contract for sub-issue #25 to build on.
 /// </summary>
-[Collection(DatabaseCollection.Name)]
-public class JobRepositoryTests
+[Collection(DatabaseTestSuite.Name)]
+public class JobRepositoryTests(PostgresFixture postgresFixture)
 {
-    private readonly PostgresFixture postgresFixture;
-
-    public JobRepositoryTests(PostgresFixture postgresFixture)
-    {
-        this.postgresFixture = postgresFixture;
-    }
-
     [Fact]
     public async Task Should_RoundtripJobPosting_Through_AddGetUpdateDelete()
     {

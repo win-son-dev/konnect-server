@@ -12,15 +12,9 @@ namespace Konnect.Tests.WebAPI.Authentication;
 /// <see cref="KonnectWebApplicationFactory"/>, which overrides JwtBearer to
 /// trust tokens minted by <see cref="TestJwtTokenFactory"/>.
 /// </summary>
-public class AuthenticationPipelineTests : IClassFixture<KonnectWebApplicationFactory>
+public class AuthenticationPipelineTests(KonnectWebApplicationFactory factory)
+    : IClassFixture<KonnectWebApplicationFactory>
 {
-    private readonly KonnectWebApplicationFactory factory;
-
-    public AuthenticationPipelineTests(KonnectWebApplicationFactory factory)
-    {
-        this.factory = factory;
-    }
-
     [Fact]
     public async Task Should_Return401_When_NoBearerTokenPresent()
     {

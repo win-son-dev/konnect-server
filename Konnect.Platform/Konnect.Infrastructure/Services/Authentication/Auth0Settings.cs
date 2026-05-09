@@ -15,18 +15,18 @@ public sealed record Auth0Settings
     /// JwtBearer Authority is derived as <c>https://{Domain}/</c> and used to
     /// fetch the JWKS document and validate the <c>iss</c> claim.
     /// </summary>
-    public string Domain { get; init; } = string.Empty;
+    public string Domain { get; set; } = string.Empty;
 
     /// <summary>
     /// The audience identifier of the seeker-side Auth0 API resource —
     /// becomes the JWT <c>aud</c> for tokens issued to the Seeker SPA.
     /// Example: <c>https://api.konnect.dev/seeker</c>.
     /// </summary>
-    public string SeekerAudience { get; init; } = string.Empty;
+    public string SeekerAudience { get; set; } = string.Empty;
 
     /// <summary>
     /// The audience identifier of the employer-side Auth0 API resource.
     /// Example: <c>https://api.konnect.dev/employer</c>.
     /// </summary>
-    public string EmployerAudience { get; init; } = string.Empty;
+    public string EmployerAudience { get; set; } = string.Empty;
 }
