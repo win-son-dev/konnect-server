@@ -86,15 +86,9 @@ public class KonnectWebApplicationFactory : WebApplicationFactory<WebApiEntryPoi
     /// metadata-fetch path entirely — the bearer scheme never makes an HTTP
     /// call out of the test process.
     /// </summary>
-    private sealed class TestJwtBearerOptionsPostConfigure : IPostConfigureOptions<JwtBearerOptions>
+    private sealed class TestJwtBearerOptionsPostConfigure(TestJwtTokenFactory tokenFactory)
+        : IPostConfigureOptions<JwtBearerOptions>
     {
-        private readonly TestJwtTokenFactory tokenFactory;
-
-        public TestJwtBearerOptionsPostConfigure(TestJwtTokenFactory tokenFactory)
-        {
-            this.tokenFactory = tokenFactory;
-        }
-
         public void PostConfigure(string? name, JwtBearerOptions options)
         {
             options.Authority = null;

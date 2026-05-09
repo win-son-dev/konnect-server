@@ -4,15 +4,8 @@ using Konnect.Infrastructure.Services.Onboarding;
 
 namespace Konnect.Services.Onboarding;
 
-public sealed class JobSeekerOnboardingService : IJobSeekerOnboardingService
+public sealed class JobSeekerOnboardingService(IUserRepository userRepository) : IJobSeekerOnboardingService
 {
-    private readonly IUserRepository userRepository;
-
-    public JobSeekerOnboardingService(IUserRepository userRepository)
-    {
-        this.userRepository = userRepository;
-    }
-
     public async Task<JobSeekerOnboardingResult> OnboardAsync(
         Guid externalId,
         string email,

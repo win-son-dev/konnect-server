@@ -18,15 +18,8 @@ namespace Konnect.WebAPI.Controllers.Onboarding;
 [ApiController]
 [Route("api/recruiter/onboard")]
 [Authorize(Roles = JwtRoles.Recruiter)]
-public sealed class RecruiterOnboardingController : ControllerBase
+public sealed class RecruiterOnboardingController(IRecruiterOnboardingService onboardingService) : ControllerBase
 {
-    private readonly IRecruiterOnboardingService onboardingService;
-
-    public RecruiterOnboardingController(IRecruiterOnboardingService onboardingService)
-    {
-        this.onboardingService = onboardingService;
-    }
-
     [HttpPost]
     public async Task<IActionResult> Onboard(
         [FromBody] OnboardRecruiterInput input,

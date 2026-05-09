@@ -4,15 +4,8 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Konnect.Repositories;
 
-public sealed class CompanyRepository : ICompanyRepository
+public sealed class CompanyRepository(KonnectDbContext dbContext) : ICompanyRepository
 {
-    private readonly KonnectDbContext dbContext;
-
-    public CompanyRepository(KonnectDbContext dbContext)
-    {
-        this.dbContext = dbContext;
-    }
-
     public Task<Company?> GetByIdAsync(Guid id, CancellationToken cancellationToken)
         => dbContext.Companies
             .FirstOrDefaultAsync(company => company.Id == id, cancellationToken);

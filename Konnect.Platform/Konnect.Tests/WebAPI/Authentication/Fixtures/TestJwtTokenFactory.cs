@@ -54,8 +54,5 @@ public sealed class TestJwtTokenFactory : IDisposable
         return new JsonWebTokenHandler().CreateToken(descriptor);
     }
 
-    public void Dispose()
-    {
-        rsa.Dispose();
-    }
+    public void Dispose() => rsa.Dispose();
 }

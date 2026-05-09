@@ -4,15 +4,8 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Konnect.Repositories;
 
-public sealed class JobRepository : IJobRepository
+public sealed class JobRepository(KonnectDbContext dbContext) : IJobRepository
 {
-    private readonly KonnectDbContext dbContext;
-
-    public JobRepository(KonnectDbContext dbContext)
-    {
-        this.dbContext = dbContext;
-    }
-
     public Task<JobPosting?> GetByIdAsync(Guid id, CancellationToken cancellationToken)
         => dbContext.JobPostings
             .FirstOrDefaultAsync(jobPosting => jobPosting.Id == id, cancellationToken);

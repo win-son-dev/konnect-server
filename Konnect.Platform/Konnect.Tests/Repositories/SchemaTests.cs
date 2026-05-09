@@ -9,16 +9,9 @@ namespace Konnect.Tests.Repositories;
 /// expected post-Auth0-pivot shape, this test starts failing. Especially
 /// guards against the asp_net_* Identity tables sneaking back in.
 /// </summary>
-[Collection(DatabaseCollection.Name)]
-public class SchemaTests
+[Collection(DatabaseTestSuite.Name)]
+public class SchemaTests(PostgresFixture postgresFixture)
 {
-    private readonly PostgresFixture postgresFixture;
-
-    public SchemaTests(PostgresFixture postgresFixture)
-    {
-        this.postgresFixture = postgresFixture;
-    }
-
     [Fact]
     public async Task Should_HaveExpectedTableSet_When_AllMigrationsApplied()
     {

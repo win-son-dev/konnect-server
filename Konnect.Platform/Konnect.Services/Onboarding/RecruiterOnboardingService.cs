@@ -4,19 +4,10 @@ using Konnect.Infrastructure.Services.Onboarding;
 
 namespace Konnect.Services.Onboarding;
 
-public sealed class RecruiterOnboardingService : IRecruiterOnboardingService
+public sealed class RecruiterOnboardingService(
+    IUserRepository userRepository,
+    ICompanyRepository companyRepository) : IRecruiterOnboardingService
 {
-    private readonly IUserRepository userRepository;
-    private readonly ICompanyRepository companyRepository;
-
-    public RecruiterOnboardingService(
-        IUserRepository userRepository,
-        ICompanyRepository companyRepository)
-    {
-        this.userRepository = userRepository;
-        this.companyRepository = companyRepository;
-    }
-
     public async Task<RecruiterOnboardingResult> OnboardAsync(
         Guid externalId,
         string email,

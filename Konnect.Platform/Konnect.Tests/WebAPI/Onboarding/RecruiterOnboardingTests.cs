@@ -16,7 +16,7 @@ namespace Konnect.Tests.WebAPI.Onboarding;
 /// one transaction, is idempotent on replay, rejects audience mismatches via
 /// <c>[Authorize]</c>, and surfaces slug collisions as 409.
 /// </summary>
-[Collection(DatabaseCollection.Name)]
+[Collection(DatabaseTestSuite.Name)]
 public sealed class RecruiterOnboardingTests : IDisposable
 {
     private readonly PostgresFixture postgresFixture;

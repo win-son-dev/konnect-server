@@ -13,7 +13,7 @@ namespace Konnect.Tests.WebAPI.Onboarding;
 /// End-to-end coverage for <c>POST /api/seeker/onboard</c>: the controller
 /// + service + repository chain against a real Testcontainers Postgres.
 /// </summary>
-[Collection(DatabaseCollection.Name)]
+[Collection(DatabaseTestSuite.Name)]
 public sealed class JobSeekerOnboardingTests : IDisposable
 {
     private readonly PostgresFixture postgresFixture;

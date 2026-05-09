@@ -4,15 +4,8 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Konnect.Repositories;
 
-public sealed class UserRepository : IUserRepository
+public sealed class UserRepository(KonnectDbContext dbContext) : IUserRepository
 {
-    private readonly KonnectDbContext dbContext;
-
-    public UserRepository(KonnectDbContext dbContext)
-    {
-        this.dbContext = dbContext;
-    }
-
     public Task<User?> GetByIdAsync(Guid externalId, CancellationToken cancellationToken)
         => dbContext.Users
             .FirstOrDefaultAsync(user => user.Id == externalId, cancellationToken);
