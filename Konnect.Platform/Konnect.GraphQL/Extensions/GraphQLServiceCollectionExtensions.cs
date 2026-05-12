@@ -1,7 +1,8 @@
 using Konnect.GraphQL.Schema;
+using Konnect.GraphQL.Schema.Companies;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Konnect.GraphQL;
+namespace Konnect.GraphQL.Extensions;
 
 public static class GraphQLServiceCollectionExtensions
 {
@@ -9,7 +10,11 @@ public static class GraphQLServiceCollectionExtensions
     {
         services
             .AddGraphQLServer()
-            .AddQueryType<Query>();
+            .AddAuthorization()
+            .AddQueryType<Query>()
+            .AddType<CompanyType>()
+            .AddTypeExtension<CompanyQueries>()
+            .AddTypeExtension<RecruiterCompanyQueries>();
 
         return services;
     }

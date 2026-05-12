@@ -19,14 +19,9 @@ namespace Konnect.WebAPI.Middleware;
 /// a real Auth0-signed token, but we still treat the rejection as
 /// operational noise rather than a system error.
 /// </summary>
-public sealed class KonnectAuthenticationMiddleware
+public sealed class KonnectAuthenticationMiddleware(RequestDelegate next)
 {
-    private readonly RequestDelegate next;
-
-    public KonnectAuthenticationMiddleware(RequestDelegate next)
-    {
-        this.next = next;
-    }
+    private readonly RequestDelegate next = next;
 
     public async Task InvokeAsync(HttpContext context, ILogger<KonnectAuthenticationMiddleware> logger)
     {

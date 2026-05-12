@@ -1,8 +1,8 @@
-using Konnect.GraphQL;
+using Konnect.GraphQL.Extensions;
 using Konnect.Infrastructure.Repositories;
 using Konnect.Infrastructure.Services.Authentication;
-using Konnect.Repositories;
-using Konnect.Services;
+using Konnect.Repositories.Extensions;
+using Konnect.Services.Extensions;
 using Konnect.WebAPI.Middleware;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.Options;

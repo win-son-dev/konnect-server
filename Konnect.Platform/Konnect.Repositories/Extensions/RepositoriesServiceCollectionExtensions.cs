@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 
-namespace Konnect.Repositories;
+namespace Konnect.Repositories.Extensions;
 
 /// <summary>
 /// Single registration entry point for everything in <c>Konnect.Repositories</c> —
