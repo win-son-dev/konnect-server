@@ -28,4 +28,13 @@ public interface ICompanyRepository
         Company company,
         RecruiterUser firstRecruiter,
         CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Persists modifications to an existing <paramref name="company"/>.
+    /// EF's change tracker drives the SQL: a tracked entity emits an UPDATE
+    /// only for the dirty columns; a detached entity is treated as a full
+    /// replace. <c>updated_at</c> is refreshed by the Postgres
+    /// <c>set_updated_at</c> trigger — the application never assigns it.
+    /// </summary>
+    Task UpdateAsync(Company company, CancellationToken cancellationToken);
 }

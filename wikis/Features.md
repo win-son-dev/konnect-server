@@ -50,7 +50,7 @@ Out-of-date rows are bugs.
 | Feature | Status | Issue / Story | Wiki |
 |---|---|---|---|
 | Multi-recruiter Company model (Company has many Recruiter; recruiter role from Auth0 JWT claim, no Identity role table) | In Progress | [#46](https://github.com/win-son-dev/konnect-server/issues/46) | [Database Schema](infrastructure/Database-Schema) |
-| Company GraphQL — public `Query.company(slug)` + recruiter-scoped queries / `updateCompany` mutation | Planned | [#24](https://github.com/win-son-dev/konnect-server/issues/24) | — |
+| Company GraphQL — public `Query.company(slug)` + recruiter-scoped `Query.recruiter.company` + `PUT /api/recruiter/company` write endpoint | Shipped | [#24](https://github.com/win-son-dev/konnect-server/issues/24) | [GraphQL — Companies](api/GraphQL-Companies) |
 | Recruiter invitation flow (existing CompanyAdmin invites another recruiter) | Planned | _(deferred to Phase 1.5 — needs email infrastructure)_ | — |
 
 ## Job postings

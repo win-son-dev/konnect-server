@@ -40,4 +40,15 @@ public sealed class CompanyRepository(KonnectDbContext dbContext) : ICompanyRepo
         await dbContext.SaveChangesAsync(cancellationToken);
         await transaction.CommitAsync(cancellationToken);
     }
+
+    public async Task UpdateAsync(Company company, CancellationToken cancellationToken)
+    {
+        var entry = dbContext.Entry(company);
+        if (entry.State == EntityState.Detached)
+        {
+            dbContext.Companies.Update(company);
+        }
+
+        await dbContext.SaveChangesAsync(cancellationToken);
+    }
 }

@@ -115,15 +115,20 @@ Today, the routes that respond are:
 | `GET /api/me` | The authenticated caller's `external_id`, `role`, and `email`, distilled from JWT claims. Useful as an auth smoke test from the SPAs. | `[Authorize]` |
 | `POST /api/recruiter/onboard` | Provisions the `Company` + first `RecruiterUser` row after the SPA's first Auth0 sign-in. Idempotent on the JWT `external_id` claim. See [Onboarding](api/Onboarding). | `[Authorize(Roles = "Recruiter")]` |
 | `POST /api/seeker/onboard` | Provisions the `JobSeekerUser` row after the SPA's first Auth0 sign-in. Idempotent. | `[Authorize(Roles = "JobSeeker")]` |
-| `POST /graphql` | The single query `{ healthcheck }` — see [`Konnect.GraphQL/Schema/Query.cs`](https://github.com/win-son-dev/konnect-server/blob/main/Konnect.Platform/Konnect.GraphQL/Schema/Query.cs) | anonymous |
+| `PUT /api/recruiter/company` | Updates the recruiter's own company (name / description / website). Slug is not editable here. See [GraphQL — Companies](api/GraphQL-Companies). | `[Authorize(Roles = "Recruiter")]` |
+| `POST /graphql` — `Query.healthcheck` | Schema smoke test — see [`Konnect.GraphQL/Schema/Query.cs`](https://github.com/win-son-dev/konnect-server/blob/main/Konnect.Platform/Konnect.GraphQL/Schema/Query.cs) | anonymous |
+| `POST /graphql` — `Query.company(slug)` | Public lookup of a company by URL slug. Powers the public profile page. | anonymous |
+| `POST /graphql` — `Query.recruiter.company` | The recruiter's own company. Target derived from the JWT `external_id`, never from arguments. See [GraphQL — Companies](api/GraphQL-Companies). | `@authorize(roles: ["Recruiter"])` on the `recruiter` wrapper |
 | `GET /graphql` *(dev only)* | Banana Cake Pop / Nitro UI | anonymous |
 | `GET /openapi/v1.json` *(dev only)* | OpenAPI document | anonymous |
+
+The split between transports is deliberate: **GraphQL serves queries, REST serves commands.** The schema therefore has a `Query` root but no `Mutation` root — every state-changing operation lives on a REST controller. This maps cleanly onto the CQRS-lite split in `Konnect.Services/<DomainArea>/{Queries,Commands}/` (query services back resolvers, command services back controllers), so changing transport or scaling the read side independently is a one-layer change.
 
 Authentication is delegated to **Auth0** — Konnect never stores passwords, never issues JWTs, and holds no refresh-token state. The full picture (tenant setup, the two Auth0 Actions, the audience-split, the operational note about the Pre-User-Registration Action) lives on the [Authentication — Auth0](api/Authentication-Auth0) page. Identity-to-domain handshake (the post-Auth0 onboarding step that creates the `JobSeekerUser` / `RecruiterUser` + `Company` rows) is documented on the [Onboarding](api/Onboarding) page.
 
 Audit timestamps (`created_at`, `updated_at`) are owned by Postgres: a column default plus a `BEFORE UPDATE` trigger calling a shared `set_updated_at()` function. Application services never assign these — keeps the application clock and DB clock from skewing, and the schema stays correct even if a non-EF caller (psql, ETL) writes rows. See [`Konnect.Platform/Konnect.Repositories/Migrations/20260508121429_AddDbManagedTimestamps.cs`](https://github.com/win-son-dev/konnect-server/blob/main/Konnect.Platform/Konnect.Repositories/Migrations/20260508121429_AddDbManagedTimestamps.cs).
 
-The convention: each cross-cutting concern is registered through a single extension method that lives in the project that owns it. `AddKonnectGraphQL()` lives in [`Konnect.GraphQL/GraphQLServiceCollectionExtensions.cs`](https://github.com/win-son-dev/konnect-server/blob/main/Konnect.Platform/Konnect.GraphQL/GraphQLServiceCollectionExtensions.cs). Future concerns follow the same shape — `Program.cs` stays a short list of capabilities, not a wiring tangle.
+The convention: each cross-cutting concern is registered through a single extension method that lives in an `Extensions/` folder of the project that owns it. `AddKonnectGraphQL()` lives in [`Konnect.GraphQL/Extensions/GraphQLServiceCollectionExtensions.cs`](https://github.com/win-son-dev/konnect-server/blob/main/Konnect.Platform/Konnect.GraphQL/Extensions/GraphQLServiceCollectionExtensions.cs); the same pattern is used by `Konnect.Repositories/Extensions/` and `Konnect.Services/Extensions/`. One well-known folder per project means there's exactly one place to look when wiring or troubleshooting registrations, and `Program.cs` stays a short list of capabilities rather than a wiring tangle.
 
 ## Local infrastructure
 
