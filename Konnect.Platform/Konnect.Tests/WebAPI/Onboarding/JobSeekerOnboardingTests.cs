@@ -80,7 +80,7 @@ public sealed class JobSeekerOnboardingTests : IDisposable
     {
         var externalId = Guid.NewGuid();
         var token = factory.TokenFactory.CreateToken(
-            audience: KonnectWebApplicationFactory.EmployerAudience,
+            audience: KonnectWebApplicationFactory.RecruiterAudience,
             additionalClaims:
             [
                 new(KonnectClaimTypes.ExternalId, externalId.ToString()),

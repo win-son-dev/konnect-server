@@ -25,8 +25,8 @@ public sealed record Auth0Settings
     public string SeekerAudience { get; set; } = string.Empty;
 
     /// <summary>
-    /// The audience identifier of the employer-side Auth0 API resource.
-    /// Example: <c>https://api.konnect.dev/employer</c>.
+    /// The audience identifier of the recruiter-side Auth0 API resource.
+    /// Example: <c>https://api.konnect.dev/recruiter</c>.
     /// </summary>
-    public string EmployerAudience { get; set; } = string.Empty;
+    public string RecruiterAudience { get; set; } = string.Empty;
 }

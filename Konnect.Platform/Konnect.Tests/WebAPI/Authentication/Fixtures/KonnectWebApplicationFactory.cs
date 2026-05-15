@@ -25,7 +25,7 @@ public class KonnectWebApplicationFactory : WebApplicationFactory<WebApiEntryPoi
 
     public const string SeekerAudience = "https://api.konnect.test/seeker";
 
-    public const string EmployerAudience = "https://api.konnect.test/employer";
+    public const string RecruiterAudience = "https://api.konnect.test/recruiter";
 
     /// <summary>
     /// Postgres connection string the test host should bind to. Defaults to a
@@ -61,7 +61,7 @@ public class KonnectWebApplicationFactory : WebApplicationFactory<WebApiEntryPoi
             {
                 options.Domain = "konnect-test.auth0.local";
                 options.SeekerAudience = SeekerAudience;
-                options.EmployerAudience = EmployerAudience;
+                options.RecruiterAudience = RecruiterAudience;
             });
 
             services.AddSingleton<IPostConfigureOptions<JwtBearerOptions>>(

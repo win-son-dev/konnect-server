@@ -137,7 +137,7 @@ public sealed class CompanyGraphQLTests : IDisposable
     private HttpClient CreateRecruiterClient(Guid externalId)
     {
         var token = _factory.TokenFactory.CreateToken(
-            audience: KonnectWebApplicationFactory.EmployerAudience,
+            audience: KonnectWebApplicationFactory.RecruiterAudience,
             additionalClaims:
             [
                 new(KonnectClaimTypes.ExternalId, externalId.ToString()),

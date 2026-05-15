@@ -3,6 +3,7 @@ using Konnect.Infrastructure.Repositories;
 using Konnect.Infrastructure.Services.Authentication;
 using Konnect.Repositories.Extensions;
 using Konnect.Services.Extensions;
+using Konnect.WebAPI.Extensions;
 using Konnect.WebAPI.Middleware;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.Options;
@@ -69,13 +70,13 @@ builder.Services
             ValidAudiences =
             [
                 auth0Settings.SeekerAudience,
-                auth0Settings.EmployerAudience,
+                auth0Settings.RecruiterAudience,
             ],
             ValidateIssuerSigningKey = true,
             ValidateLifetime = true,
             // The Post-Login Action stamps the role under our namespaced
-            // claim — wire it through so [Authorize(Roles = "JobSeeker")]
-            // reads the right value.
+            // claim — wire it through so AudienceRequirementHandler's
+            // ClaimsPrincipal.IsInRole(...) check reads the right value.
             RoleClaimType = KonnectClaimTypes.Role,
             NameClaimType = KonnectClaimTypes.ExternalId,
         };
@@ -85,7 +86,7 @@ builder.Services
     .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer();
 
-builder.Services.AddAuthorization();
+builder.Services.AddKonnectAuthorization();
 
 var app = builder.Build();
 

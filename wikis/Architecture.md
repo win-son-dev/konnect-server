@@ -96,7 +96,7 @@ builder.Services.AddKonnectServices();       // onboarding + future services
 // Auth0 OIDC — JwtBearer scheme accepts tokens for both seeker + recruiter audiences
 builder.Services.AddOptions<JwtBearerOptions>(JwtBearerDefaults.AuthenticationScheme).Configure<IOptions<Auth0Settings>>(...);
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer();
-builder.Services.AddAuthorization();
+builder.Services.AddKonnectAuthorization();   // named policies: SeekerAudience, RecruiterAudience
 
 // ...
 
@@ -113,18 +113,18 @@ Today, the routes that respond are:
 | Route | What it returns | Auth |
 |---|---|---|
 | `GET /api/me` | The authenticated caller's `external_id`, `role`, and `email`, distilled from JWT claims. Useful as an auth smoke test from the SPAs. | `[Authorize]` |
-| `POST /api/recruiter/onboard` | Provisions the `Company` + first `RecruiterUser` row after the SPA's first Auth0 sign-in. Idempotent on the JWT `external_id` claim. See [Onboarding](api/Onboarding). | `[Authorize(Roles = "Recruiter")]` |
-| `POST /api/seeker/onboard` | Provisions the `JobSeekerUser` row after the SPA's first Auth0 sign-in. Idempotent. | `[Authorize(Roles = "JobSeeker")]` |
-| `PUT /api/recruiter/company` | Updates the recruiter's own company (name / description / website). Slug is not editable here. See [GraphQL — Companies](api/GraphQL-Companies). | `[Authorize(Roles = "Recruiter")]` |
+| `POST /api/recruiter/onboard` | Provisions the `Company` + first `RecruiterUser` row after the SPA's first Auth0 sign-in. Idempotent on the JWT `external_id` claim. See [Onboarding](api/Onboarding). | `RecruiterAudience` policy |
+| `POST /api/seeker/onboard` | Provisions the `JobSeekerUser` row after the SPA's first Auth0 sign-in. Idempotent. | `SeekerAudience` policy |
+| `PUT /api/recruiter/company` | Updates the recruiter's own company (name / description / website). Slug is not editable here. See [GraphQL — Companies](api/GraphQL-Companies). | `RecruiterAudience` policy |
 | `POST /graphql` — `Query.healthcheck` | Schema smoke test — see [`Konnect.GraphQL/Schema/Query.cs`](https://github.com/win-son-dev/konnect-server/blob/main/Konnect.Platform/Konnect.GraphQL/Schema/Query.cs) | anonymous |
 | `POST /graphql` — `Query.company(slug)` | Public lookup of a company by URL slug. Powers the public profile page. | anonymous |
-| `POST /graphql` — `Query.recruiter.company` | The recruiter's own company. Target derived from the JWT `external_id`, never from arguments. See [GraphQL — Companies](api/GraphQL-Companies). | `@authorize(roles: ["Recruiter"])` on the `recruiter` wrapper |
+| `POST /graphql` — `Query.recruiter.company` | The recruiter's own company. Target derived from the JWT `external_id`, never from arguments. See [GraphQL — Companies](api/GraphQL-Companies). | `RecruiterAudience` policy on the `recruiter` wrapper |
 | `GET /graphql` *(dev only)* | Banana Cake Pop / Nitro UI | anonymous |
 | `GET /openapi/v1.json` *(dev only)* | OpenAPI document | anonymous |
 
 The split between transports is deliberate: **GraphQL serves queries, REST serves commands.** The schema therefore has a `Query` root but no `Mutation` root — every state-changing operation lives on a REST controller. This maps cleanly onto the CQRS-lite split in `Konnect.Services/<DomainArea>/{Queries,Commands}/` (query services back resolvers, command services back controllers), so changing transport or scaling the read side independently is a one-layer change.
 
-Authentication is delegated to **Auth0** — Konnect never stores passwords, never issues JWTs, and holds no refresh-token state. The full picture (tenant setup, the two Auth0 Actions, the audience-split, the operational note about the Pre-User-Registration Action) lives on the [Authentication — Auth0](api/Authentication-Auth0) page. Identity-to-domain handshake (the post-Auth0 onboarding step that creates the `JobSeekerUser` / `RecruiterUser` + `Company` rows) is documented on the [Onboarding](api/Onboarding) page.
+Authentication is delegated to **Auth0** — Konnect never stores passwords, never issues JWTs, and holds no refresh-token state. The full picture (tenant setup, the two Auth0 Actions, the audience-split, the operational note about the Pre-User-Registration Action) lives on the [Authentication — Auth0](api/Authentication-Auth0) page. Identity-to-domain handshake (the post-Auth0 onboarding step that creates the `JobSeekerUser` / `RecruiterUser` + `Company` rows) is documented on the [Onboarding](api/Onboarding) page. The named-policy model that gates every protected endpoint — including the audience-claim check that complements Auth0's audience-split — is documented on the [Authorization](api/Authorization) page.
 
 Audit timestamps (`created_at`, `updated_at`) are owned by Postgres: a column default plus a `BEFORE UPDATE` trigger calling a shared `set_updated_at()` function. Application services never assign these — keeps the application clock and DB clock from skewing, and the schema stays correct even if a non-EF caller (psql, ETL) writes rows. See [`Konnect.Platform/Konnect.Repositories/Migrations/20260508121429_AddDbManagedTimestamps.cs`](https://github.com/win-son-dev/konnect-server/blob/main/Konnect.Platform/Konnect.Repositories/Migrations/20260508121429_AddDbManagedTimestamps.cs).
 
@@ -157,6 +157,7 @@ A single workflow at [`.github/workflows/ci.yml`](https://github.com/win-son-dev
 ## Where to look next
 
 - [Authentication — Auth0](api/Authentication-Auth0) — tenant setup, the two Auth0 Actions, audience-split, dev / test / prod config.
+- [Authorization](api/Authorization) — the named-policy model that gates every protected endpoint.
 - [Local Development](Local-Development) — getting a working dev environment.
 - [Infrastructure overview](infrastructure/Overview) — what runs in compose, why, and how to operate it.
 - [CI Pipeline](infrastructure/CI-Pipeline) — what gates a merge.

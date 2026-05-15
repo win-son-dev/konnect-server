@@ -16,6 +16,6 @@ public class Query
 {
     public string Healthcheck() => "ok";
 
-    [Authorize(Roles = [JwtRoles.Recruiter])]
+    [Authorize(Policy = AuthorizationPolicyNames.RecruiterAudience)]
     public RecruiterQueries Recruiter() => new();
 }
