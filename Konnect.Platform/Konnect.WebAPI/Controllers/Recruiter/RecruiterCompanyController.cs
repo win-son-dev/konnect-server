@@ -15,7 +15,7 @@ namespace Konnect.WebAPI.Controllers.Recruiter;
 /// </summary>
 [ApiController]
 [Route("api/recruiter/company")]
-[Authorize(Roles = JwtRoles.Recruiter)]
+[Authorize(Policy = AuthorizationPolicyNames.RecruiterAudience)]
 public sealed class RecruiterCompanyController(ICompanyCommandService companyCommandService) : ControllerBase
 {
     [HttpPut]

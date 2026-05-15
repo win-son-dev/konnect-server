@@ -17,7 +17,7 @@ namespace Konnect.WebAPI.Controllers.Onboarding;
 /// </summary>
 [ApiController]
 [Route("api/recruiter/onboard")]
-[Authorize(Roles = JwtRoles.Recruiter)]
+[Authorize(Policy = AuthorizationPolicyNames.RecruiterAudience)]
 public sealed class RecruiterOnboardingController(IRecruiterOnboardingService onboardingService) : ControllerBase
 {
     [HttpPost]

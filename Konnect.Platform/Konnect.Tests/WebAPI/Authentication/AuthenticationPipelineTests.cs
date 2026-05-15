@@ -50,10 +50,10 @@ public class AuthenticationPipelineTests(KonnectWebApplicationFactory factory)
     }
 
     [Fact]
-    public async Task Should_Return200_When_TokenAudienceIsEmployerSide()
+    public async Task Should_Return200_When_TokenAudienceIsRecruiterSide()
     {
         var token = factory.TokenFactory.CreateToken(
-            audience: KonnectWebApplicationFactory.EmployerAudience,
+            audience: KonnectWebApplicationFactory.RecruiterAudience,
             additionalClaims:
             [
                 new(KonnectClaimTypes.ExternalId, Guid.NewGuid().ToString()),

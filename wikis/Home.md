@@ -19,6 +19,7 @@ This wiki is the deep-dive layer for collaborators. The repo `README.md` is the 
 - **[Features](Features)** — index of every feature Konnect ships or plans to ship, with status (Planned / In Progress / Shipped) and links to the GitHub Story that holds the spec. Per-feature deep-dive pages get added under `wikis/features/` when each feature ships.
 - **API** — endpoint pages get added when each endpoint is implemented.
   - [Authentication — Auth0](api/Authentication-Auth0)
+  - [Authorization](api/Authorization)
   - [Onboarding](api/Onboarding)
   - [GraphQL — Companies](api/GraphQL-Companies)
 
